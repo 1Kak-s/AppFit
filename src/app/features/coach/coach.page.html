@@ -1,0 +1,142 @@
+<h2 class="h2" style="margin-top: 6px">Coach</h2>
+
+@if (!coach.url()) {
+  <div class="empty">
+    Le coach n'est pas encore branché. Indique l'adresse de son serveur dans les réglages, rubrique
+    Coach.
+  </div>
+  <div class="addrow" style="grid-template-columns: 1fr">
+    <a
+      routerLink="/reglages"
+      class="btn2"
+      style="display: flex; align-items: center; justify-content: center; text-decoration: none"
+      >Ouvrir les réglages</a
+    >
+  </div>
+} @else {
+  <div class="chat" aria-live="polite">
+    <div class="msg a">
+      Salut{{ store.userName() ? ' ' + store.userName() : '' }} ! Je connais ton programme «
+      {{ store.activeProgram()?.name }} » et tes dernières séances. Demande-moi de composer un
+      programme, de remplacer un exercice ou de t'aider à progresser.
+    </div>
+
+    @if (store.coachMessages().length === 0) {
+      <div class="chips">
+        @for (suggestion of suggestions; track suggestion) {
+          <button type="button" (click)="coach.send(suggestion)">{{ suggestion }}</button>
+        }
+      </div>
+    }
+
+    @for (message of store.coachMessages(); track $index; let i = $index) {
+      <div class="msg" [class.u]="message.role === 'user'" [class.a]="message.role === 'assistant'">
+        {{ message.text }}
+      </div>
+
+      @if (message.program; as program) {
+        <div class="prop">
+          <h5>{{ program.name }}</h5>
+          <ul>
+            @for (session of program.sessions; track $index) {
+              <li>
+                <b>{{ session.name }}</b>{{
+                  daysText(session.days) ? ' · ' + daysText(session.days) : ''
+                }}
+                :
+                @for (exercise of session.exercises; track $index; let last = $last) {
+                  {{ nameOf(exercise) }} {{ dose(exercise) }}{{ last ? '' : ', ' }}
+                }
+              </li>
+            }
+          </ul>
+          @if (message.applied) {
+            <p class="done">
+              {{ message.applied === 'use' ? 'Ajouté et activé ✓' : 'Ajouté à tes programmes ✓' }}
+            </p>
+          } @else {
+            <div class="row">
+              <button type="button" class="go" (click)="applyProgram(i, true)">
+                Ajouter et utiliser
+              </button>
+              <button type="button" (click)="applyProgram(i, false)">Ajouter sans l'activer</button>
+            </div>
+          }
+        </div>
+      }
+
+      @if (message.swap; as swap) {
+        <div class="prop">
+          <h5>{{ nameOf(swap) }}</h5>
+          <p>
+            À la place de « {{ swap.replacedName }} »{{ dose(swap) ? ' · ' + dose(swap) : ''
+            }}{{ swap.muscles ? ' · ' + swap.muscles : '' }}
+          </p>
+          @if (message.applied) {
+            <p class="done">
+              {{
+                message.applied === 'replace'
+                  ? "Remplacé ✓ L'ancien exercice reste en alternative."
+                  : 'Ajouté en alternative ✓ Glisse la carte pour le voir.'
+              }}
+            </p>
+          } @else {
+            <div class="row">
+              <button type="button" class="go" (click)="applySwap(i, 'replace')">Remplacer</button>
+              <button type="button" (click)="applySwap(i, 'alternative')">
+                Ajouter en alternative
+              </button>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    @if (coach.busy()) {
+      <div class="msg a typing" role="status">Le coach réfléchit…</div>
+    }
+    @if (coach.error()) {
+      <div class="msg a e" role="alert">{{ coach.error() }}</div>
+    }
+  </div>
+
+  <div class="composer">
+    <textarea
+      #field
+      rows="1"
+      maxlength="1500"
+      placeholder="Écris au coach…"
+      aria-label="Message au coach"
+      [value]="coach.draft()"
+      [disabled]="coach.busy()"
+      (input)="resize(field)"
+      (keydown.enter)="onEnter($event, field)"
+    ></textarea>
+    <button
+      type="button"
+      aria-label="Envoyer"
+      [disabled]="coach.busy()"
+      (click)="coach.send(field.value)"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M5 12h13M12 5l7 7-7 7" />
+      </svg>
+    </button>
+  </div>
+
+  <p class="note">
+    {{ remainingText() }}Tes messages, ton programme et tes dernières charges sont envoyés au coach
+    pour qu'il te réponde. C'est une IA : elle peut se tromper et ne remplace pas un avis médical.
+    @if (store.coachMessages().length) {
+      <button type="button" class="lnk" (click)="clear()">Effacer la conversation</button>
+    }
+  </p>
+}

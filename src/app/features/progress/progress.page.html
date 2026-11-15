@@ -1,0 +1,65 @@
+<h2 class="h2" style="margin-top: 6px">Mes charges</h2>
+@for (group of groups(); track group.name) {
+  <div class="grp" [style.color]="group.color">{{ group.name }}</div>
+  <div class="prs">
+    @for (row of group.rows; track $index) {
+      <div class="pr">
+        <span
+          >{{ row.name }}
+          @if (row.alternative) {
+            <span class="swap">ALT</span>
+          }
+        </span>
+        <span class="r">
+          @if (row.spark) {
+            <svg class="spark" viewBox="0 0 56 22" aria-hidden="true">
+              <path [attr.d]="row.spark" />
+            </svg>
+          }
+          <b>
+            @if (row.current !== null) {
+              {{ formatKg(row.current) }} {{ row.unit }}
+              @if (row.gain > 0) {
+                <span class="up">+{{ formatKg(row.gain) }}</span>
+              }
+            } @else {
+              <span style="color: var(--muted); font-weight: 500">pas encore</span>
+            }
+          </b>
+        </span>
+      </div>
+    }
+  </div>
+} @empty {
+  <div class="empty">Ajoute des exercices à ton programme pour suivre tes charges.</div>
+}
+
+<h2 class="h2">Historique</h2>
+@for (log of logs(); track log.id) {
+  <div class="log">
+    <header>
+      <b [style.color]="log.color">{{ log.sessionName }}</b>
+      <span>{{ shortDate(log.date) }}</span>
+    </header>
+    <ul>
+      @for (item of log.items; track $index) {
+        @if (item.cardio) {
+          <li>
+            <span>{{ item.name }}</span
+            ><b>fait</b>
+          </li>
+        } @else {
+          <li>
+            <span>{{ item.name }} · {{ item.setsDone }}/{{ item.setsPlanned }} séries</span>
+            <b>{{ formatKg(item.weight ?? 0) }} {{ item.unit }}</b>
+          </li>
+        }
+      }
+    </ul>
+  </div>
+} @empty {
+  <div class="empty">
+    Tes séances apparaîtront ici. Coche tes séries pendant l'entraînement, puis touche « Terminer la
+    séance ».
+  </div>
+}

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Carnet · Muscu</title>
+    <base href="./" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!--
+      Politique de sécurité du contenu : la page ne charge que ses propres fichiers.
+      - script-src 'self' : aucun script en ligne ni venu d'un autre site ne peut s'exécuter.
+      - connect-src : l'app ne parle qu'à elle-même et au serveur du coach (HTTPS, ou localhost pour les tests).
+        Une fois le backend en ligne, remplace « https: » par son adresse exacte pour resserrer encore.
+      - trusted-types : seules la politique d'Angular et celle du service worker (main.ts) peuvent créer du contenu actif.
+      - 'unsafe-inline' ne concerne que les styles : Angular en a besoin pour les styles des composants.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; require-trusted-types-for 'script'; trusted-types angular default"
+    />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#0E1114" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Carnet" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon-192.png" type="image/png" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
+</html>

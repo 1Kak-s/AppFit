@@ -1,0 +1,107 @@
+<a class="back" routerLink="/programme">‹ Programme</a>
+@if (session(); as s) {
+  <h2 class="h2" style="margin-top: 4px" [style.color]="color()">{{ s.name || 'Séance' }}</h2>
+  <div class="card">
+    <label class="fld"
+      >Nom de la séance
+      <input
+        #name
+        maxlength="40"
+        placeholder="Ex. Haut du corps"
+        [value]="s.name"
+        (input)="store.updateSession(s.id, { name: name.value })"
+      />
+    </label>
+    <div class="fld">
+      Jours
+      <div class="dchips">
+        @for (item of week; track item.day) {
+          <button
+            type="button"
+            [attr.aria-pressed]="s.days.includes(item.day)"
+            [attr.aria-label]="item.label"
+            (click)="store.toggleSessionDay(s.id, item.day)"
+          >
+            {{ item.initial }}
+          </button>
+        }
+      </div>
+      <small>Touche un ou plusieurs jours. Une même séance peut revenir 2 fois par semaine.</small>
+    </div>
+    <label class="fld"
+      >Durée
+      <input
+        #duration
+        maxlength="40"
+        placeholder="Ex. 45 min"
+        [value]="s.duration"
+        (input)="store.updateSession(s.id, { duration: duration.value })"
+      />
+    </label>
+    <label class="fld"
+      >Échauffement
+      <textarea
+        #warmup
+        maxlength="200"
+        placeholder="Ex. 5 à 10 min de vélo"
+        [value]="s.warmup"
+        (input)="store.updateSession(s.id, { warmup: warmup.value })"
+      ></textarea>
+    </label>
+  </div>
+
+  <h2 class="h3">Exercices</h2>
+  <div class="rows">
+    @for (exercise of s.exercises; track exercise.id; let i = $index; let last = $last) {
+      <div class="xrow">
+        <a class="t" [routerLink]="['exercice', exercise.id]">
+          <b>{{ exercise.name }}</b>
+          <small
+            >{{ prescription(exercise)
+            }}{{
+              exercise.alternatives.length
+                ? ' · ' + plural(exercise.alternatives.length, 'alternative')
+                : ''
+            }}</small
+          >
+        </a>
+        <button
+          type="button"
+          class="ib"
+          aria-label="Monter"
+          [disabled]="i === 0"
+          (click)="store.moveExercise(s.id, exercise.id, -1)"
+        >
+          ↑
+        </button>
+        <button
+          type="button"
+          class="ib"
+          aria-label="Descendre"
+          [disabled]="last"
+          (click)="store.moveExercise(s.id, exercise.id, 1)"
+        >
+          ↓
+        </button>
+        <a class="ib" aria-label="Modifier" [routerLink]="['exercice', exercise.id]">›</a>
+      </div>
+    } @empty {
+      <div class="empty">Pas encore d'exercice. Pioche dans la bibliothèque ou crée le tien.</div>
+    }
+  </div>
+  <div class="addrow">
+    <button type="button" (click)="pickingFromLibrary.set(true)">+ Bibliothèque</button>
+    <button type="button" (click)="addCustom()">+ Exercice perso</button>
+  </div>
+  <button type="button" class="danger-l" (click)="remove()">Supprimer cette séance</button>
+
+  @if (pickingFromLibrary()) {
+    <app-library-picker
+      title="Ajouter un exercice"
+      (picked)="addFromLibrary($event)"
+      (closed)="pickingFromLibrary.set(false)"
+    />
+  }
+} @else {
+  <div class="empty">Cette séance n'existe plus.</div>
+}

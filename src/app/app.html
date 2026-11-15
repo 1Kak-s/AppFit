@@ -1,0 +1,59 @@
+<main class="app"><router-outlet /></main>
+
+@if (timer.active()) {
+  <div class="timer" [class.zero]="timer.finished()">
+    <div class="in">
+      <div class="clock">{{ timer.clock() }}</div>
+      <div class="lbl">{{ timer.caption() }}</div>
+      <button type="button" (click)="timer.addFifteenSeconds()">+15 s</button>
+      <button type="button" (click)="timer.stop()">Passer</button>
+    </div>
+  </div>
+}
+
+@if (store.hasProfile()) {
+  <nav class="tabs" aria-label="Navigation">
+    <div class="in">
+      @for (tab of tabs; track tab.path) {
+        <a [routerLink]="tab.path" routerLinkActive ariaCurrentWhenActive="page">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path [attr.d]="tab.icon" />
+          </svg>
+          {{ tab.label }}
+        </a>
+      }
+    </div>
+  </nav>
+}
+
+@if (ui.confirmRequest(); as request) {
+  <app-sheet (closed)="ui.answer(false)">
+    <p style="margin: 0 0 6px; font-size: 15px; line-height: 1.45">{{ request.message }}</p>
+    @if (request.infoOnly) {
+      <button type="button" class="cancel" (click)="ui.answer(true)">OK</button>
+    } @else {
+      <button
+        type="button"
+        class="opt"
+        [class.danger]="request.danger"
+        style="justify-content: center"
+        (click)="ui.answer(true)"
+      >
+        {{ request.confirmLabel }}
+      </button>
+      <button type="button" class="cancel" (click)="ui.answer(false)">Annuler</button>
+    }
+  </app-sheet>
+}
+
+@if (ui.toastMessage(); as message) {
+  <div class="toast" role="status">{{ message }}</div>
+}

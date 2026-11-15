@@ -1,0 +1,197 @@
+<div class="top">
+  <span class="brand">{{ store.activeProgram()?.name }}</span>
+  <span class="date">{{ today }}</span>
+</div>
+
+<div class="seg" role="tablist">
+  @for (item of store.sessions(); track item.id; let i = $index) {
+    <button
+      type="button"
+      role="tab"
+      [attr.aria-selected]="item.id === session()?.id"
+      (click)="choose(item.id)"
+    >
+      <span class="nm">{{ item.name }}</span>
+      <small>{{ daysText(item.days) || 'Séance ' + (i + 1) }}</small>
+    </button>
+  }
+</div>
+
+@if (session(); as current) {
+  <section class="hero" [style.--sc]="color()">
+    <div class="day">
+      {{ store.todaySession()?.id === current.id ? "Aujourd'hui · " : ''
+      }}{{ daysText(current.days) || 'Séance' }}
+    </div>
+    <h1>{{ current.name }}</h1>
+    <div class="meta">
+      @if (current.duration) {
+        <span>{{ current.duration }}</span>
+      }
+      <span>{{ doneCount() }} / {{ current.exercises.length }} exercices faits</span>
+    </div>
+    <div class="bar"><i [style.width.%]="percent()"></i></div>
+    @if (current.warmup) {
+      <div class="warm"><b>Échauffement.</b> {{ current.warmup }}</div>
+    }
+  </section>
+
+  @if (current.exercises.length) {
+    <div class="list" [style.--sc]="color()">
+      @for (exercise of current.exercises; track exercise.id) {
+        <app-exercise-card
+          [exercise]="exercise"
+          [sessionId]="current.id"
+          (zoom)="zoomed.set($event)"
+          (photo)="openPhotoSheet($event)"
+        />
+      }
+    </div>
+
+    @if (confirmingReset()) {
+      <div class="confirm">
+        Effacer les séries cochées de cette séance, sans l'enregistrer ?
+        <div class="btns">
+          <button type="button" (click)="confirmingReset.set(false)">Annuler</button>
+          <button type="button" class="yes" (click)="reset()">Effacer</button>
+        </div>
+      </div>
+    } @else {
+      <button
+        type="button"
+        class="finish"
+        [disabled]="!doneCount()"
+        [style.opacity]="doneCount() ? null : 0.5"
+        (click)="finish()"
+      >
+        Terminer la séance
+      </button>
+      <button type="button" class="ghost" (click)="confirmingReset.set(true)">
+        Réinitialiser sans enregistrer
+      </button>
+    }
+  } @else {
+    <div class="empty" style="margin-top: 14px">
+      Cette séance est vide.
+      <a
+        class="finish"
+        style="display: flex; align-items: center; justify-content: center; text-decoration: none"
+        [routerLink]="['/programme/seance', current.id]"
+        >Ajouter des exercices</a
+      >
+    </div>
+  }
+} @else {
+  <div class="empty" style="margin-top: 14px">
+    Aucune séance. Va dans l'onglet Programme pour en créer une.
+  </div>
+}
+
+@if (photoFor(); as variant) {
+  <app-sheet (closed)="photoFor.set(null)">
+    <h4>{{ variant.name }}</h4>
+    <label class="opt" for="photo-file">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+        <circle cx="12" cy="13" r="3.5" />
+      </svg>
+      <span
+        >{{ photos.photoOf(variant.id) ? 'Remplacer ma photo' : 'Ajouter ma photo'
+        }}<small>Prends la machine en photo ou choisis-en une</small></span
+      >
+    </label>
+    <input
+      id="photo-file"
+      #file
+      type="file"
+      accept="image/*"
+      hidden
+      (change)="addPhoto(variant, file)"
+    />
+    <a
+      class="opt"
+      [href]="photoSearchUrl(variant)"
+      target="_blank"
+      rel="noopener noreferrer"
+      (click)="photoFor.set(null)"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="6.5" />
+        <path d="M16 16l4.5 4.5" />
+      </svg>
+      <span
+        >Voir la machine sur le web<small
+          >Recherche d'images « {{ photoQueryOf(variant) }} »</small
+        ></span
+      >
+    </a>
+    @if (photos.photoOf(variant.id)) {
+      <button type="button" class="opt danger" (click)="removePhoto(variant)">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13" />
+        </svg>
+        <span>Supprimer ma photo<small>Le schéma reviendra</small></span>
+      </button>
+    }
+    @if (photoError()) {
+      <p class="err">{{ photoError() }}</p>
+    }
+    <button type="button" class="cancel" (click)="photoFor.set(null)">Fermer</button>
+  </app-sheet>
+}
+
+@if (zoomed(); as variant) {
+  <div
+    class="lbx"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="variant.name"
+    (click)="zoomed.set(null)"
+  >
+    <div class="bar2">
+      <b>{{ variant.name }}</b>
+      <button type="button" class="x" aria-label="Fermer">×</button>
+    </div>
+    <div class="stage">
+      @if (photos.photoOf(variant.id); as picture) {
+        <img
+          [src]="picture.src"
+          [alt]="'Photo de la machine ' + variant.name"
+          (click)="$event.stopPropagation()"
+        />
+      } @else {
+        <svg
+          viewBox="0 0 160 110"
+          class="pic"
+          role="img"
+          [style.--sc]="color()"
+          [attr.aria-label]="'Schéma : ' + variant.name"
+          [appIllustration]="variant.illustration"
+          (click)="$event.stopPropagation()"
+        ></svg>
+      }
+    </div>
+    <p>{{ variant.machineLabel || variant.muscles }} · touche en dehors pour fermer</p>
+  </div>
+}

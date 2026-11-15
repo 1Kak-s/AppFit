@@ -1,0 +1,130 @@
+<h2 class="h2" style="margin-top: 6px">Réglages</h2>
+<div class="card">
+  <label class="fld"
+    >Ton prénom
+    <input
+      #name
+      maxlength="40"
+      placeholder="Affiché quand tu partages un programme"
+      [value]="store.userName()"
+      (input)="store.setUserName(name.value)"
+    />
+  </label>
+</div>
+
+<h2 class="h3">Pendant la séance</h2>
+<div class="rows">
+  <button
+    type="button"
+    class="tog"
+    role="switch"
+    [attr.aria-checked]="store.settings().keepAwake"
+    (click)="store.updateSettings({ keepAwake: !store.settings().keepAwake })"
+  >
+    <span
+      >Garder l'écran allumé<small
+        >L'écran ne se verrouille pas tant que l'app est ouverte. Consomme un peu plus de
+        batterie.</small
+      ></span
+    >
+    <i class="sw" aria-hidden="true"></i>
+  </button>
+  <button
+    type="button"
+    class="tog"
+    role="switch"
+    [attr.aria-checked]="store.settings().lockScreenTimer"
+    (click)="store.updateSettings({ lockScreenTimer: !store.settings().lockScreenTimer })"
+  >
+    <span
+      >Repos sur l'écran verrouillé + bip<small
+        >Le repos s'affiche dans le lecteur de l'écran verrouillé, avec le temps restant, et un bip
+        sonne à la fin. Attention : ça met en pause ta musique (Spotify, Apple Music).</small
+      ></span
+    >
+    <i class="sw" aria-hidden="true"></i>
+  </button>
+</div>
+<div class="addrow" style="grid-template-columns: 1fr">
+  <button type="button" (click)="testBeep()">Tester le bip (5 secondes)</button>
+</div>
+
+<h2 class="h3">Coach</h2>
+<div class="card">
+  <label class="fld"
+    >Adresse du serveur du coach
+    <input
+      #coach
+      type="url"
+      inputmode="url"
+      autocapitalize="off"
+      autocorrect="off"
+      spellcheck="false"
+      maxlength="200"
+      [value]="store.settings().coachUrl"
+      [placeholder]="config.coachUrl() || 'https://…'"
+      (change)="setCoachUrl(coach.value)"
+    />
+    @if (coachUrlError()) {
+      <small style="color: #c0362c">Adresse refusée : elle doit commencer par https://</small>
+    }
+  </label>
+</div>
+<p class="note">
+  {{
+    config.coachUrl()
+      ? "Laisse vide pour garder l'adresse prévue dans l'app."
+      : "Le coach passe par un petit serveur qui fait le lien avec l'IA. Colle ici son adresse."
+  }}
+</p>
+
+<h2 class="h3">Sauvegarde</h2>
+<div class="addrow">
+  <button type="button" class="btn2 solid" (click)="backups.export()">Exporter</button>
+  <button type="button" class="btn2 solid" (click)="restoring.set(true)">Importer</button>
+</div>
+<p class="note">
+  Tes données restent sur ce téléphone. Exporte de temps en temps : si tu supprimes l'app, elles
+  partent avec.
+</p>
+
+@if (week().length) {
+  <h2 class="h2">Ma semaine</h2>
+  <div class="week">
+    @for (day of week(); track day.label) {
+      <div class="wk">
+        <i [style.color]="day.color">{{ day.label }}</i
+        >{{ day.names }}
+      </div>
+    }
+    @if (week().length < 7) {
+      <div class="wk"><i>AUTRES</i>Repos actif : marche, 8 000 pas et plus</div>
+    }
+  </div>
+}
+
+<h2 class="h2">Les règles d'or</h2>
+<div class="rules">
+  @for (rule of rules; track rule.title) {
+    <div class="rule">
+      <b>{{ rule.title }}</b
+      >{{ rule.text }}
+    </div>
+  }
+</div>
+
+<h2 class="h2">Sur l'écran d'accueil</h2>
+<div class="install">
+  Ouvre l'app dans le navigateur de ton téléphone, puis :
+  <ol>
+    <li><b>iPhone (Safari)</b> : bouton Partager, puis « Sur l'écran d'accueil ».</li>
+    <li><b>Android (Chrome)</b> : menu ⋮, puis « Installer l'application ».</li>
+  </ol>
+  Sur iPhone, l'app installée et Safari ne partagent pas leurs données : utilise toujours l'icône de
+  l'écran d'accueil.
+</div>
+<div class="ver">Carnet v3.0</div>
+
+@if (restoring()) {
+  <app-restore-backup (closed)="restoring.set(false)" />
+}

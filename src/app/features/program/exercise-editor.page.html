@@ -1,0 +1,102 @@
+@if (session(); as s) {
+  <a class="back" [routerLink]="['/programme/seance', s.id]">‹ {{ s.name }}</a>
+}
+@if (exercise(); as e) {
+  <h2 class="h2" style="margin-top: 4px">{{ e.name || 'Exercice' }}</h2>
+  <div class="card">
+    <app-variant-fields
+      [variant]="e"
+      [color]="color()"
+      [withWeight]="e.sets > 0"
+      hint="Tu peux aussi ajouter ta propre photo depuis la séance (bouton « Photos »)."
+      (changed)="store.updateExercise(e.id, $event)"
+    >
+      <div class="typ">
+        <button type="button" [attr.aria-pressed]="e.sets > 0" (click)="setStrength(true)">
+          Musculation
+        </button>
+        <button type="button" [attr.aria-pressed]="e.sets === 0" (click)="setStrength(false)">
+          Cardio
+        </button>
+      </div>
+      @if (e.sets) {
+        <div class="three">
+          <label class="fld"
+            >Séries
+            <input
+              #sets
+              type="number"
+              inputmode="numeric"
+              min="1"
+              max="8"
+              [value]="e.sets"
+              (change)="setSets(sets.valueAsNumber)"
+            />
+          </label>
+          <label class="fld"
+            >Répétitions
+            <input
+              #reps
+              maxlength="24"
+              placeholder="10-12"
+              [value]="e.reps"
+              (input)="store.updateExercise(e.id, { reps: reps.value })"
+            />
+          </label>
+          <label class="fld"
+            >Repos
+            <select #rest (change)="store.updateExercise(e.id, { restSeconds: +rest.value })">
+              @for (choice of rests; track choice.seconds) {
+                <option [value]="choice.seconds" [selected]="choice.seconds === e.restSeconds">
+                  {{ choice.label }}
+                </option>
+              }
+            </select>
+          </label>
+        </div>
+      } @else {
+        <label class="fld"
+          >Durée
+          <input
+            #length
+            maxlength="24"
+            placeholder="Ex. 10 min"
+            [value]="e.reps"
+            (input)="store.updateExercise(e.id, { reps: length.value })"
+          />
+        </label>
+      }
+    </app-variant-fields>
+  </div>
+
+  <h2 class="h3">Alternatives</h2>
+  <p class="note" style="margin: -4px 2px 8px">
+    Si la machine est prise ou cassée : on glisse la carte pour passer à l'alternative.
+  </p>
+  <div class="rows">
+    @for (alternative of e.alternatives; track alternative.id) {
+      <div class="xrow">
+        <a class="t" [routerLink]="['alternative', alternative.id]">
+          <b>{{ alternative.name }}</b>
+          <small>{{ alternative.machineLabel || alternative.muscles }}</small>
+        </a>
+        <a class="ib" aria-label="Modifier" [routerLink]="['alternative', alternative.id]">›</a>
+      </div>
+    }
+  </div>
+  <div class="addrow">
+    <button type="button" (click)="pickingFromLibrary.set(true)">+ Bibliothèque</button>
+    <button type="button" (click)="addCustomAlternative()">+ Perso</button>
+  </div>
+  <button type="button" class="danger-l" (click)="remove()">Supprimer cet exercice</button>
+
+  @if (pickingFromLibrary()) {
+    <app-library-picker
+      title="Ajouter une alternative"
+      (picked)="addAlternativeFromLibrary($event)"
+      (closed)="pickingFromLibrary.set(false)"
+    />
+  }
+} @else {
+  <div class="empty">Cet exercice n'existe plus.</div>
+}

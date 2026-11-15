@@ -1,0 +1,18 @@
+/* Couleurs et polices : thème clair, et thème sombre selon le réglage du téléphone. */
+:root{
+  --bg:#EEF0F2; --surface:#FFFFFF; --sunk:#E3E6EA; --line:#D3D8DE;
+  --fg:#15191E; --muted:#5B6570; --accent:#D9480F; --accent-ink:#FFFFFF;
+  --a:#1F7A5A; --b:#2456C8; --c:#7A3FC2; --ok:#1F7A5A;
+  --mach:#6B7480; --machf:#C9CFD6; --okbg:#E3F4EC; --okline:#9ED5BC;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1114; --surface:#171B20; --sunk:#20262C; --line:#2C343C;
+  --fg:#EEF1F4; --muted:#9AA5B1; --accent:#FF7A3D; --accent-ink:#12161A;
+  --a:#3FBF8C; --b:#6E97FF; --c:#B48CFF; --ok:#3FBF8C; --mach:#8893A0; --machf:#2E363F; --okbg:#142A21; --okline:#2D6B52; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1114; --surface:#171B20; --sunk:#20262C; --line:#2C343C;
+  --fg:#EEF1F4; --muted:#9AA5B1; --accent:#FF7A3D; --accent-ink:#12161A;
+  --a:#3FBF8C; --b:#6E97FF; --c:#B48CFF; --ok:#3FBF8C; --mach:#8893A0; --machf:#2E363F; --okbg:#142A21; --okline:#2D6B52; color-scheme:dark}

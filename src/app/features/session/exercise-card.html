@@ -1,0 +1,189 @@
+<article class="ex" [class.done]="done()" [class.cardio]="!exercise().sets">
+  <div class="car" #carousel (scroll)="onScroll()">
+    @for (variant of variants(); track variant.id; let vi = $index) {
+      <div class="pan">
+        @if (photos.photoOf(variant.id); as picture) {
+          <button
+            type="button"
+            class="pic photo"
+            [attr.aria-label]="'Agrandir la photo : ' + variant.name"
+            (click)="zoom.emit(variant)"
+          >
+            <img
+              [src]="picture.src"
+              [style.object-position]="picture.position"
+              [alt]="'Photo de la machine ' + variant.name"
+              loading="lazy"
+            />
+            <span class="tag mine">MA PHOTO</span>
+            <span class="zoom" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+              >
+                <path d="M15 4h5v5M9 20H4v-5M20 4l-6 6M4 20l6-6" />
+              </svg>
+            </span>
+          </button>
+        } @else {
+          <button
+            type="button"
+            class="pic"
+            [attr.aria-label]="'Agrandir le schéma : ' + variant.name"
+            (click)="zoom.emit(variant)"
+          >
+            <svg
+              viewBox="0 0 160 110"
+              aria-hidden="true"
+              [appIllustration]="variant.illustration"
+            ></svg>
+            <span class="zoom" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+              >
+                <path d="M15 4h5v5M9 20H4v-5M20 4l-6 6M4 20l6-6" />
+              </svg>
+            </span>
+          </button>
+        }
+
+        @if (variants().length > 1) {
+          <div class="alts">
+            <span class="hint">{{ vi ? 'Alternative' : 'Machine prise ? Glisse' }}</span>
+            @for (other of variants(); track other.id; let oi = $index) {
+              <button type="button" [attr.aria-pressed]="oi === vi" (click)="goTo(oi)">
+                {{ oi ? 'Alt ' + oi : 'Machine' }}
+              </button>
+            }
+          </div>
+        }
+
+        <div class="exh">
+          <div class="t">
+            <h3>
+              {{ variant.name }}
+              @if (vi) {
+                <span class="swap">ALT</span>
+              }
+            </h3>
+            @if (variant.machineLabel) {
+              <span class="plate">{{ variant.machineLabel }}</span>
+            }
+            @if (variant.muscles) {
+              <p class="mus">{{ variant.muscles }}</p>
+            }
+          </div>
+          <div class="links">
+            <button
+              type="button"
+              class="vid ph"
+              [attr.aria-label]="'Photos : ' + variant.name"
+              (click)="photo.emit(variant)"
+            >
+              Photos
+            </button>
+            <a
+              class="vid ph"
+              [href]="videoUrl(variant)"
+              target="_blank"
+              rel="noopener noreferrer"
+              [attr.aria-label]="'Vidéo : ' + variant.name"
+            >
+              <svg viewBox="0 0 10 10" aria-hidden="true">
+                <path d="M2 1l7 4-7 4z" fill="currentColor" /></svg
+              >Vidéo
+            </a>
+          </div>
+        </div>
+
+        <div class="rx">
+          {{ prescription() }}
+          @if (exercise().sets && exercise().restSeconds) {
+            <span>repos {{ rest() }}</span>
+          }
+        </div>
+
+        @if (exercise().sets) {
+          <div class="row">
+            @for (i of setIndexes(); track i) {
+              <button
+                type="button"
+                class="set"
+                [class.on]="i < progress().done"
+                [class.xtra]="i >= exercise().sets"
+                [attr.aria-label]="'Série ' + (i + 1) + (i < progress().done ? ' faite' : '')"
+                (click)="toggleSet(i)"
+              >
+                {{ i + 1 }}
+              </button>
+            }
+            @if (total() < 8) {
+              <button
+                type="button"
+                class="set add"
+                aria-label="Ajouter une série"
+                (click)="addSet()"
+              >
+                +
+              </button>
+            }
+            @if (total() > exercise().sets && progress().done < total()) {
+              <button
+                type="button"
+                class="set del"
+                aria-label="Retirer la dernière série ajoutée"
+                (click)="removeSet()"
+              >
+                −
+              </button>
+            }
+            <div class="kg">
+              <button type="button" aria-label="Diminuer la charge" (click)="bump(variant, -1)">
+                −
+              </button>
+              <label>
+                <input
+                  #kg
+                  inputmode="decimal"
+                  maxlength="7"
+                  aria-label="Charge"
+                  [value]="formatKg(weight(variant))"
+                  (change)="typed(variant, kg)"
+                />
+                <em>{{ variant.unit }}</em>
+              </label>
+              <button type="button" aria-label="Augmenter la charge" (click)="bump(variant, 1)">
+                +
+              </button>
+            </div>
+          </div>
+          <div class="okb">
+            ✓ Exercice validé{{
+              total() > exercise().sets ? ' · ' + progress().done + ' séries' : ''
+            }}{{ progress().done < total() ? ' · série bonus en cours' : '' }}
+          </div>
+          <div class="last">
+            @if (lastLog(variant); as last) {
+              Dernière fois : <b>{{ last }}</b>
+            } @else {
+              Charge de départ indicative, ajuste-la.
+            }
+          </div>
+        } @else {
+          <div class="row">
+            <button type="button" class="chk" [class.on]="done()" (click)="toggleCardio()">
+              {{ done() ? 'Fait ✓' : 'Marquer comme fait' }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</article>

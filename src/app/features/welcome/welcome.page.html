@@ -1,0 +1,52 @@
+<div class="welcome">
+  <div class="top"><span class="brand">Carnet · Muscu</span></div>
+  <h1>Ton carnet de muscu</h1>
+  <p class="lead">
+    Tes séances, tes charges et tes progrès, dans ta poche. Tout reste sur ce téléphone.
+  </p>
+
+  <div class="card" style="margin-bottom: 18px">
+    <label class="fld"
+      >Ton prénom
+      <input
+        #name
+        autocomplete="given-name"
+        maxlength="40"
+        placeholder="Ex. Léa"
+        (input)="userName.set(name.value.trim())"
+      />
+    </label>
+  </div>
+
+  <h2 class="h3" style="margin-top: 0">Pour commencer</h2>
+  @for (choice of choices; track choice.sheet) {
+    <button type="button" class="opt" (click)="sheet.set(choice.sheet)">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path [attr.d]="choice.icon" />
+      </svg>
+      <span
+        >{{ choice.title }}<small>{{ choice.detail }}</small></span
+      >
+    </button>
+  }
+</div>
+
+@switch (sheet()) {
+  @case ('wizard') {
+    <app-program-wizard [firstRunName]="userName()" (closed)="sheet.set(null)" />
+  }
+  @case ('import') {
+    <app-import-program [firstRunName]="userName()" (closed)="sheet.set(null)" />
+  }
+  @case ('restore') {
+    <app-restore-backup (closed)="sheet.set(null)" />
+  }
+}

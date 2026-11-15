@@ -1,0 +1,105 @@
+@if (store.activeProgram(); as program) {
+  <h2 class="h2" style="margin-top: 6px">Mon programme</h2>
+  <div class="card">
+    <label class="fld"
+      >Nom du programme
+      <input
+        #name
+        maxlength="60"
+        [value]="program.name"
+        (input)="store.renameProgram(name.value)"
+      />
+    </label>
+  </div>
+
+  <h2 class="h3">Séances</h2>
+  <div class="rows">
+    @for (session of program.sessions; track session.id; let i = $index; let last = $last) {
+      <div class="xrow">
+        <i
+          style="flex: 0 0 8px; height: 34px; border-radius: 4px"
+          [style.background]="colors[i % colors.length]"
+        ></i>
+        <a class="t" [routerLink]="['/programme/seance', session.id]">
+          <b>{{ session.name }}</b>
+          <small
+            >{{ daysText(session.days) ? daysText(session.days) + ' · ' : ''
+            }}{{ plural(session.exercises.length, 'exercice') }}</small
+          >
+        </a>
+        <button
+          type="button"
+          class="ib"
+          aria-label="Monter"
+          [disabled]="i === 0"
+          (click)="store.moveSession(session.id, -1)"
+        >
+          ↑
+        </button>
+        <button
+          type="button"
+          class="ib"
+          aria-label="Descendre"
+          [disabled]="last"
+          (click)="store.moveSession(session.id, 1)"
+        >
+          ↓
+        </button>
+        <a class="ib" aria-label="Modifier" [routerLink]="['/programme/seance', session.id]">›</a>
+      </div>
+    }
+  </div>
+  <div class="addrow" style="grid-template-columns: 1fr">
+    <button type="button" (click)="addSession()">+ Ajouter une séance</button>
+  </div>
+  <button type="button" class="finish" (click)="sheet.set('share')">Partager ce programme</button>
+  <p class="note">
+    Tes charges, ton historique et tes photos ne sont jamais partagés. Seul le programme l'est.
+  </p>
+
+  <h2 class="h3">Mes programmes</h2>
+  <div class="rows">
+    @for (other of store.programs(); track other.id) {
+      <div class="xrow">
+        <button type="button" class="t" (click)="activate(other)">
+          <b>{{ other.name }}</b>
+          <small
+            >{{ other.id === program.id ? 'Utilisé en ce moment · ' : ''
+            }}{{ plural(other.sessions.length, 'séance') }}</small
+          >
+        </button>
+        @if (other.id === program.id) {
+          <span
+            class="ib on"
+            style="display: flex; align-items: center; justify-content: center"
+            aria-label="Actif"
+            >✓</span
+          >
+        } @else {
+          <button type="button" class="ib" aria-label="Utiliser" (click)="activate(other)">
+            ○
+          </button>
+        }
+        @if (store.programs().length > 1) {
+          <button type="button" class="ib" aria-label="Supprimer" (click)="remove(other)">🗑</button>
+        }
+      </div>
+    }
+  </div>
+  <div class="addrow">
+    <button type="button" (click)="sheet.set('wizard')">+ Nouveau</button>
+    <button type="button" (click)="sheet.set('import')">Importer</button>
+  </div>
+
+  @switch (sheet()) {
+    @case ('wizard') {
+      <app-program-wizard (closed)="sheet.set(null)" />
+    }
+    @case ('import') {
+      <app-import-program (closed)="sheet.set(null)" />
+    }
+    @case ('share') {
+      <app-share-sheet [program]="program" (closed)="sheet.set(null)" />
+    }
+  }
+}
